@@ -1,28 +1,21 @@
 package main
-
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/jinzhu/gorm"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
-
 	"github.com/gin-gonic/gin"
 )
-
-
 var log *logrus.Logger
-
 func NewLogger(filename string, logLevel string) *logrus.Logger {
 	if log != nil {
 		return log
 	}
-
 	path := filename
 	writer, err := rotatelogs.New(
 		path+".%Y%m%d%H%M",
@@ -42,9 +35,9 @@ func NewLogger(filename string, logLevel string) *logrus.Logger {
 			logrus.FatalLevel: writer,
 			logrus.PanicLevel: writer,
 		},
-		&logrus.JSONFormatter{},
+		//&logrus.JSONFormatter{},
+		&logrus.TextFormatter{},
 	))
-
 	pathMap := lfshook.PathMap{
 		logrus.InfoLevel:  path,
 		logrus.ErrorLevel: path,
@@ -57,22 +50,41 @@ func NewLogger(filename string, logLevel string) *logrus.Logger {
 	switch logLevel {
 	case "debug":
 		log.SetLevel(logrus.DebugLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.TextFormatter{},
+		))
 	case "info":
 		log.SetLevel(logrus.InfoLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.JSONFormatter{},
+		))
 	case "error":
 		log.SetLevel(logrus.ErrorLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.JSONFormatter{},
+		))
 	case "warn":
 		log.SetLevel(logrus.WarnLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.JSONFormatter{},
+		))
 	case "fatal":
 		log.SetLevel(logrus.FatalLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.JSONFormatter{},
+		))
 	default:
 		log.SetLevel(logrus.PanicLevel)
+		log.Hooks.Add(lfshook.NewHook(
+			pathMap,
+			&logrus.JSONFormatter{},
+		))
 	}
-	log.Hooks.Add(lfshook.NewHook(
-		pathMap,
-		&logrus.JSONFormatter{},
-	))
-
 	return log
 }
 
@@ -83,8 +95,7 @@ func GetUsers(c *gin.Context) {
 
 type User struct {
 	gorm.Model
-
-	ID        uint `gorm:"primary_key`
+	ID        uint   `gorm:"primary_key`
 	Uname     string `sql:"type:VARCHAR(255)"`
 	CreatedAt time.Time
 }
@@ -116,40 +127,36 @@ func main() {
 		}
 		envLogLevel := fmt.Sprintf("%s.log.level", env)
 		envLogFile := fmt.Sprintf("%s.log.file", env)
-		//envServerHost:=fmt.Sprintf("%s.server.host",env)
-		envServerPort:=fmt.Sprintf("%s.server.port",env)
+		envDataBaseName := fmt.Sprintf("%s.database.database", env)
+		envDataBaseUser := fmt.Sprintf("%s.database.username", env)
+		envDataBasePass := fmt.Sprintf("%s.database.password", env)
+		envServerPort := fmt.Sprintf("%s.server.port", env)
 		logLevel := viper.GetString(envLogLevel)
 		logFile := viper.GetString(envLogFile)
-		//serverHost:=viper.GetString(envServerHost)
-		serverPort:=viper.GetString(envServerPort)
+		dataBaseName := viper.GetString(envDataBaseName)
+		dataBaseUser := viper.GetString(envDataBaseUser)
+		dataBasePass := viper.GetString(envDataBasePass)
+		serverPort := viper.GetString(envServerPort)
 		log := NewLogger(logFile, logLevel)
 
-		r := gin.Default()
-		v1 := r.Group("api/v1")
-		//log.Debug("hello world")
+		router := gin.Default()
+
+		v1 := router.Group("api/v1")
+
 		{
 			v1.GET("/users", GetUsers)
 		}
-		db, err := gorm.Open("mysql", "mapuser:password@tcp(127.0.0.1:3306)/lisa_data2?charset=utf8&parseTime=True&loc=Local")
+		dbConnectionStr := fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s?charset=utf8&parseTime=True&loc=Local", dataBaseUser, dataBasePass, dataBaseName)
+		db, err := gorm.Open("mysql", dbConnectionStr)
 		db.CreateTable(&User{})
 		defer db.Close()
 		if err != nil {
 			log.Panic("DB is not open ")
 		}
 
-		//user := User{Uname: "test1"}
-		//fmt.Println(db.NewRecord(user)) // => returns `true` as primary key is blank
-		//ret := db.Create(&user)
-
-		//log.Warn("You should probably take a look at this.")
-		//log.Error("Somthing failed but I am not quitting")
-		/*log.WithFields(logrus.Fields{
-			"animal": "walrus",
-			"size":   10,
-		}).Error("A group of walrus emerges from the ocean")*/
-		ports := fmt.Sprintf(":%s",serverPort)
-		log.Info("Server is running from port ",serverPort)
-		r.Run(ports)
+		ports := fmt.Sprintf(":%s", serverPort)
+		log.Info("Server is running from port ", serverPort)
+		router.Run(ports)
 	}
 
 }
