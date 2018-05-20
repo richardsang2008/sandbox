@@ -1,9 +1,0 @@
-{"level":"debug","msg":"I am here staring ","time":"2018-05-20T01:43:05-07:00"}
-{"level":"debug","msg":"I am here","time":"2018-05-20T01:43:09-07:00"}
-{"level":"debug","msg":"I am here","time":"2018-05-20T01:43:25-07:00"}
-{"level":"debug","msg":"I am here","time":"2018-05-20T01:43:36-07:00"}
-{"level":"debug","msg":"I am here staring ","time":"2018-05-20T02:06:11-07:00"}
-{"level":"debug","msg":"I am here","time":"2018-05-20T02:06:38-07:00"}
-{"level":"info","msg":"Server is running from port %s 8080","time":"2018-05-20T02:07:53-07:00"}
-{"level":"info","msg":"Server is running from port 8080","time":"2018-05-20T02:08:25-07:00"}
-{"level":"debug","msg":"I am here","time":"2018-05-20T02:09:17-07:00"}
