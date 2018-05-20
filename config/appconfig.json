@@ -1,0 +1,51 @@
+{
+  "dev":{
+    "enable":true,
+    "log":{
+      "level":"debug",
+      "file":"logs/app.log"
+    },
+    "database":{
+      "username":"mapuser",
+      "password":"password",
+      "database":"lisa_data2"
+    },
+    "server":{
+      "port": "8080",
+      "host": "127.0.0.1"
+
+    },
+    "slackApi":{
+      "key":""
+
+    },
+    "admin":[
+      "",
+      ""
+    ],
+    "admin_channels":[
+      "",
+      ""
+    ],
+    "monitor_channels":[
+      "",
+      ""
+    ],
+    "subscriber_channels":[
+      "",
+      ""
+    ],
+    "keywords":[
+      {"add notify":true},
+      {"list notify":true},
+      {"remove notify":true},
+      {"edit notify":true}
+    ]
+  },
+  "test":{
+
+  },
+  "prod":{
+
+  }
+}
